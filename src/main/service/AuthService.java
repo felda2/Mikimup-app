@@ -1,18 +1,14 @@
 package main.service;
 
-import main.dao.UserDAO;
 import main.model.User;
 
 public class AuthService {
-    private UserDAO userDAO = new UserDAO();
 
-    // Mengambil data user untuk login
-    public User loginUser(String username, String password) {
-        return userDAO.login(username, password);
-    }
+    public User login(String username, String password) {
+        if (username.equals("admin") && password.equals("123")) {
+            return new User("admin", "123", "admin");
+        }
 
-    // Melakukan proses registrasi
-    public boolean registerUser(User user) {
-        return userDAO.register(user);
+        return null;
     }
 }
