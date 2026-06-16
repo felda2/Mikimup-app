@@ -1,66 +1,79 @@
 package main.view;
 
-import java.awt.GridLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-
+import javax.swing.*;
+import java.awt.*;
 import main.model.User;
 import main.service.AuthService;
 
 public class LoginFrame extends JFrame {
-    private JTextField usernameField;
-    private JPasswordField passwordField;
-    private JButton loginButton;
-
-    private AuthService authService;
+    private JTextField txtUsername = new JTextField(15);
+    private JPasswordField txtPassword = new JPasswordField(15);
+    private JButton btnLogin = new JButton("Login");
+    private JButton btnDaftar = new JButton("Belum punya akun? Daftar");
+    
+    private AuthService authService = new AuthService();
 
     public LoginFrame() {
-        authService = new AuthService();
-
-        setTitle("Login Aplikasi");
-        setSize(350, 200);
+        setTitle("Login System - MIKIMUP");
+        setSize(350, 250); // Tinggi ditambah sedikit untuk tombol daftar
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(3, 2, 10, 10));
+        setLayout(new GridBagLayout());
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        add(new JLabel("Username"));
-        usernameField = new JTextField();
-        add(usernameField);
+        // --- UI Layout ---
+        gbc.gridx = 0; gbc.gridy = 0;
+        add(new JLabel("Username:"), gbc);
+        gbc.gridx = 1;
+        add(txtUsername, gbc);
 
-        add(new JLabel("Password"));
-        passwordField = new JPasswordField();
-        add(passwordField);
+        gbc.gridx = 0; gbc.gridy = 1;
+        add(new JLabel("Password:"), gbc);
+        gbc.gridx = 1;
+        add(txtPassword, gbc);
 
-        loginButton = new JButton("Login");
-        add(loginButton);
+        // Tombol Login
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        add(btnLogin, gbc);
 
-        loginButton.addActionListener(e -> prosesLogin());
+        // Tombol Daftar
+        gbc.gridy = 3;
+        add(btnDaftar, gbc);
+
+        // --- Action Listeners ---
+        btnLogin.addActionListener(e -> prosesLogin());
+        
+        btnDaftar.addActionListener(e -> {
+            new RegisterFrame(); // Membuka frame registrasi
+            this.dispose();      // Menutup login
+        });
+
+        setVisible(true);
     }
 
     private void prosesLogin() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
+        String username = txtUsername.getText().trim();
+        String password = new String(txtPassword.getPassword()).trim();
 
-        User user = authService.login(username, password);
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username dan Password tidak boleh kosong!");
+            return;
+        }
 
-        if (user != null) {
-            JOptionPane.showMessageDialog(this, "Login berhasil!");
+        User loggedInUser = authService.loginUser(username, password);
 
-            DashboardFrame dashboardFrame = new DashboardFrame();
-            dashboardFrame.setVisible(true);
-
-            dispose();
+        if (loggedInUser != null) {
+            JOptionPane.showMessageDialog(this, "Selamat Datang, " + loggedInUser.getUsername());
+            
+            // Mengirim data user ke Dashboard
+            new DashboardFrame(loggedInUser).setVisible(true);
+            this.dispose();
         } else {
-            JOptionPane.showMessageDialog(
-                this,
-                "Username atau password salah.",
-                "Login Gagal",
-                JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Login Gagal! Username atau Password salah.", 
+                                          "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

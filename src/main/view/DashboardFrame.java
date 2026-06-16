@@ -1,42 +1,49 @@
 package main.view;
 
-import java.awt.GridLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.*;
+import java.awt.*;
+import main.model.User;
 
 public class DashboardFrame extends JFrame {
+    
+    private User currentUser;
 
-    public DashboardFrame() {
-        setTitle("Dashboard");
-        setSize(500, 300);
+    public DashboardFrame(User user) {
+        this.currentUser = user; // Menyimpan data user yang sedang login
+
+        setTitle("Dashboard MIKIMUP - " + currentUser.getRole());
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(4, 1, 10, 10));
+        setLayout(new BorderLayout());
 
-        add(new JLabel("Selamat datang di aplikasi."));
+        // Header
+        JLabel lblWelcome = new JLabel("Halo, " + currentUser.getUsername() + 
+                                       " (Role: " + currentUser.getRole() + ")", SwingConstants.CENTER);
+        add(lblWelcome, BorderLayout.NORTH);
 
-        JButton barangButton = new JButton("Kelola Barang");
-        JButton transaksiButton = new JButton("Transaksi");
-        JButton laporanButton = new JButton("Laporan");
-
-        add(barangButton);
-        add(transaksiButton);
-        add(laporanButton);
-
-        barangButton.addActionListener(e -> {
-            BarangFrame barangFrame = new BarangFrame();
-            barangFrame.setVisible(true);
+        // Panel Menu Utama
+        JPanel panelMenu = new JPanel();
+        
+        // Logika tampilan menu berdasarkan role
+        if (currentUser.getRole().equalsIgnoreCase("owner")) {
+            panelMenu.add(new JButton("Lihat Laporan Keuangan"));
+            panelMenu.add(new JButton("Manajemen User"));
+        } else {
+            panelMenu.add(new JButton("Input Transaksi"));
+            panelMenu.add(new JButton("Cetak Struk"));
+        }
+        
+        add(panelMenu, BorderLayout.CENTER);
+        
+        // Tombol Logout
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.addActionListener(e -> {
+            new LoginFrame();
+            dispose();
         });
+        add(btnLogout, BorderLayout.SOUTH);
 
-        transaksiButton.addActionListener(e -> {
-            TransaksiFrame transaksiFrame = new TransaksiFrame();
-            transaksiFrame.setVisible(true);
-        });
-
-        laporanButton.addActionListener(e -> {
-            LaporanFrame laporanFrame = new LaporanFrame();
-            laporanFrame.setVisible(true);
-        });
+        setVisible(true);
     }
 }
