@@ -9,6 +9,10 @@ public class DetailTransaksi {
         this.jumlah = jumlah;
     }
 
+    public void setJumlah(int jumlah) {
+        this.jumlah = jumlah;
+    }
+
     public Barang getBarang() {
         return barang;
     }
