@@ -24,3 +24,5 @@ Repository ini digunakan untuk mengembangkan aplikasi Java berbasis GUI.
 - `view`: Menyimpan halaman GUI.
 - `database`: Menyimpan konfigurasi database.
 - `util`: Menyimpan fungsi tambahan.
+
+//

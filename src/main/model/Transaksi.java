@@ -50,8 +50,8 @@ public class Transaksi {
         this.statusPembayaran = statusPembayaran;
     }
 
-    public void tambahDetail(DetailTransaksi detailTransaksi) {
-        daftarDetail.add(detailTransaksi);
+    public void tambahDetail(DetailTransaksi detail) {
+        daftarDetail.add(detail);
     }
 
     public void hapusDetail(int index) {
@@ -59,6 +59,7 @@ public class Transaksi {
         if (index >= 0 && index < daftarDetail.size()) {
             daftarDetail.remove(index);
         }
+
     }
 
     public double hitungTotal() {
@@ -83,6 +84,7 @@ public class Transaksi {
         }
 
         return 0;
+
     }
 
     public void konfirmasiTransaksi() {
@@ -95,10 +97,15 @@ public class Transaksi {
 
     @Override
     public String toString() {
+
         return idTransaksi
+                + " | "
+                + tanggal
                 + " | Rp "
                 + hitungTotal()
                 + " | "
                 + statusPembayaran;
+
     }
+
 }

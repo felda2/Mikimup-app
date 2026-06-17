@@ -1,8 +1,15 @@
 package main.view;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -15,6 +22,8 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+
+import database.DatabaseConnection;
 import main.model.Barang;
 import main.model.DetailTransaksi;
 import main.model.Transaksi;
@@ -23,518 +32,513 @@ import main.service.TransaksiService;
 
 public class TransaksiFrame extends JFrame {
 
-    private BarangService barangService;
-    private TransaksiService transaksiService;
+        private BarangService barangService;
+        private TransaksiService transaksiService;
 
-    private JComboBox<String> produkCombo;
-    private JTextField jumlahField;
+        private JComboBox<String> produkCombo;
+        private JTextField cariField;
+        private JTextField jumlahField;
 
-    private JButton tambahButton;
-    private JButton editButton;
-    private JButton hapusButton;
+        private JButton tambahButton;
+        private JButton editButton;
+        private JButton hapusButton;
 
-    private JTable tabel;
-    private DefaultTableModel model;
+        private JTable tabel;
+        private DefaultTableModel model;
 
-    private JLabel totalLabel;
-    private JTextField bayarField;
-    private JLabel kembalianLabel;
+        private JLabel totalLabel;
+        private JTextField bayarField;
 
-    private JButton simpanButton;
-    private JButton cetakButton;
+        private JComboBox<String> metodeCombo;
 
-    private JTextArea riwayatArea;
+        private JLabel kembalianLabel;
 
-    private JLabel jumlahTransaksiLabel;
-    private JLabel pendapatanLabel;
+        private JButton simpanButton;
+        private JButton cetakButton;
 
-    private Transaksi transaksiAktif;
-    private Transaksi transaksiTerakhir;
+        private JTextArea riwayatArea;
 
-    private int nomorTransaksi = 1;
+        private JLabel jumlahTransaksiLabel;
+        private JLabel pendapatanLabel;
 
-    public TransaksiFrame() {
+        private Transaksi transaksiAktif;
+        private Transaksi transaksiTerakhir;
 
-        barangService = new BarangService();
-        transaksiService = new TransaksiService();
+        private int nomorTransaksi = 1;
 
-        loadDataBarang();
+        public TransaksiFrame() {
 
-        transaksiAktif = new Transaksi(generateId());
+                barangService = new BarangService();
+                transaksiService = new TransaksiService();
 
-        setTitle("Transaksi");
-        setSize(1000, 650);
-        setLocationRelativeTo(null);
+                loadDataBarang();
 
-        setLayout(new BorderLayout());
+                transaksiAktif = new Transaksi(generateId());
 
-        initPanelInput();
-        initTable();
-        initPanelRiwayat();
-        initPanelBawah();
-    }
+                setTitle("Transaksi Mikimup");
 
-    private void loadDataBarang() {
+                setSize(1100, 700);
 
-        barangService.tambahBarang(
-                new Barang(
-                        "KB001",
-                        "Kimbab Original",
-                        50,
-                        15000));
+                setLocationRelativeTo(null);
 
-        barangService.tambahBarang(
-                new Barang(
-                        "KB002",
-                        "Kimbab Spicy",
-                        30,
-                        18000));
+                setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        barangService.tambahBarang(
-                new Barang(
-                        "KB003",
-                        "Kimbab Cheese",
-                        20,
-                        20000));
-    }
+                setLayout(new BorderLayout(12, 12));
 
-    private String generateId() {
-        return String.format("TRX%03d", nomorTransaksi++);
-    }
+                ((JPanel) getContentPane()).setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+                getContentPane().setBackground(Color.decode("#FCE4E8"));
+                BorderFactory.createLineBorder(Color.decode("#E5E7EB"));
 
-    private void initPanelInput() {
+                initPanelInput();
 
-        JPanel panel =
-                new JPanel(
-                        new GridLayout(3, 2, 10, 10));
+                initTable();
 
-        produkCombo =
-                new JComboBox<>();
+                initPanelRiwayat();
 
-        for (Barang barang :
-                barangService.getDaftarBarang()) {
+                initPanelBawah();
 
-            produkCombo.addItem(
-                    barang.getKodeBarang()
-                    + " - "
-                    + barang.getNamaBarang());
         }
 
-        jumlahField = new JTextField();
+        private String generateId() {
 
-        tambahButton =
-                new JButton("Tambah Item");
+                return String.format("TRX%03d", nomorTransaksi++);
 
-        panel.add(new JLabel("Produk"));
-        panel.add(produkCombo);
+        }
 
-        panel.add(new JLabel("Jumlah"));
-        panel.add(jumlahField);
+        // LOAD DATA PRODUK DATABASE
+        private void loadDataBarang() {
 
-        panel.add(new JLabel(""));
-        panel.add(tambahButton);
+                barangService.getDaftarBarang().clear();
+                try {
+                        Connection conn = DatabaseConnection.getConnection();
 
-        add(panel, BorderLayout.NORTH);
+                        String sql = "SELECT * FROM products ORDER BY nama_barang";
 
-        tambahButton.addActionListener(
-                e -> tambahItem());
-    }
+                        PreparedStatement ps = conn.prepareStatement(sql);
 
-    private void initTable() {
+                        ResultSet rs = ps.executeQuery();
 
-        model =
-                new DefaultTableModel(
-                        new String[]{
-                                "Kode",
-                                "Nama",
-                                "Jumlah",
-                                "Harga",
-                                "Subtotal"
-                        },
-                        0);
+                        while (rs.next()) {
+                                Barang barang = new Barang(
+                                                rs.getString("kode_barang"),
+                                                rs.getString("nama_barang"),
+                                                rs.getInt("stok"),
+                                                rs.getDouble("harga"));
+                                barangService.tambahBarang(barang);
+                        }
+                        rs.close();
+                        ps.close();
+                        conn.close();
+                } catch (Exception e) {
+                        e.printStackTrace();
+                }
 
-        tabel = new JTable(model);
+        }
 
-        JPanel panel =
-                new JPanel(
-                        new BorderLayout());
+        // PanelInputan
+        private void initPanelInput() {
+                JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
 
-        panel.add(
-                new JScrollPane(tabel),
-                BorderLayout.CENTER);
+                panel.setBorder(BorderFactory.createTitledBorder("Input Transaksi"));
+                panel.setBackground(Color.WHITE);
 
-        JPanel tombolPanel =
-                new JPanel();
+                cariField = new JTextField();
+                cariField.setBackground(Color.WHITE);
+                cariField.setForeground(Color.decode("#1F2937"));
 
-        editButton =
-                new JButton("Edit Item");
+                produkCombo = new JComboBox<>();
+                produkCombo.setBackground(Color.WHITE);
 
-        hapusButton =
-                new JButton("Hapus Item");
+                for (Barang barang : barangService.getDaftarBarang()) {
+                        produkCombo.addItem(barang.getKodeBarang()+ " - "+ barang.getNamaBarang());
+                }
 
-        tombolPanel.add(editButton);
-        tombolPanel.add(hapusButton);
+                jumlahField = new JTextField();
+                jumlahField.setBackground(Color.WHITE);
+                jumlahField.setForeground(Color.decode("#1F2937"));     
 
-        panel.add(
-                tombolPanel,
-                BorderLayout.SOUTH);
+                tambahButton = new JButton("Tambah Item");
+                tambahButton.setBackground(Color.decode("#E5395A"));
+                tambahButton.setForeground(Color.WHITE);
+                tambahButton.setFocusPainted(false);
 
-        add(panel, BorderLayout.CENTER);
+                panel.add(new JLabel("Cari Produk"));
+                panel.add(cariField);
+                panel.add(new JLabel("Pilih Produk"));
+                panel.add(produkCombo);
+                panel.add(new JLabel("Jumlah"));
+                panel.add(jumlahField);
+                panel.add(new JLabel(""));
+                panel.add(tambahButton);
+                add(panel,BorderLayout.NORTH);
 
-        editButton.addActionListener(
-                e -> editItem());
+        }
+        //TabelTransaksi
+        private void initTable() {
+                model = new DefaultTableModel(new String[] {
+                        "Kode","Nama","Jumlah","Harga","Subtotal"
+                },0);
 
-        hapusButton.addActionListener(
-                e -> hapusItem());
-    }
+                //tabelTransaksi
+                tabel = new JTable(model);
+                tabel.getTableHeader().setBackground(Color.decode("#E5395A"));
+                tabel.getTableHeader().setForeground(Color.WHITE);
+                tabel.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-    private void initPanelRiwayat() {
+                tabel.setRowHeight(25);
 
-        riwayatArea =
-                new JTextArea();
+                JPanel panel = new JPanel(new BorderLayout(10,10));
+                panel.setBorder(BorderFactory.createTitledBorder("Keranjang Transaksi"));
+                panel.setBackground(Color.WHITE);
+                panel.add(new JScrollPane(tabel),BorderLayout.CENTER);
+                JPanel tombolPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        riwayatArea.setEditable(false);
+                //EditButton
+                editButton = new JButton("Edit Item");
+                editButton.setBackground(Color.decode("#3B82F6"));
+                editButton.setForeground(Color.WHITE);
+                editButton.setFocusPainted(false);
 
-        JScrollPane scroll =
-                new JScrollPane(
-                        riwayatArea);
+                //HapusButton
+                hapusButton = new JButton("Hapus Item");
+                tombolPanel.add(editButton);
+                tombolPanel.add(hapusButton);
+                hapusButton.setBackground(Color.decode("#EF4444"));
+                hapusButton.setForeground(Color.WHITE);
+                hapusButton.setFocusPainted(false);
 
-        scroll.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Riwayat Transaksi"));
+                panel.add(tombolPanel,BorderLayout.SOUTH);
+                add(panel,BorderLayout.CENTER);
 
-        scroll.setPreferredSize(
-                new Dimension(
-                        250,
-                        0));
+        }
+        //PanelRiwayatKu
+        private void initPanelRiwayat() {
 
-        add(scroll, BorderLayout.EAST);
-    }
+                riwayatArea = new JTextArea();
+                riwayatArea.setEditable(false);
+                riwayatArea.setLineWrap(true);
+                riwayatArea.setWrapStyleWord(true);
+                JScrollPane scroll = new JScrollPane(riwayatArea);
 
-    private void initPanelBawah() {
+                scroll.setPreferredSize(new Dimension(260,0));
+                scroll.setBorder(BorderFactory.createTitledBorder("Riwayat Transaksi"));
 
-        JPanel bawah =
-                new JPanel(
-                        new GridLayout(
-                                6,
-                                2,
-                                10,
-                                10));
+                add(scroll,BorderLayout.EAST);
 
-        totalLabel =
-                new JLabel(
-                        "Total : Rp 0");
+        }
+        //PanelBawahTransaksi
+        private void initPanelBawah() {
+                JPanel bawah = new JPanel(new GridLayout(6,2,10,10));
 
-        bayarField =
-                new JTextField();
+                bawah.setBorder(BorderFactory.createEmptyBorder(12,0,0,0));
 
-        kembalianLabel =
-                new JLabel(
-                        "Rp 0");
+                totalLabel = new JLabel("Total : Rp 0");
+                totalLabel.setForeground(Color.decode("#1F2937"));
+                totalLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        jumlahTransaksiLabel =
-                new JLabel(
-                        "Jumlah Transaksi : 0");
+                bayarField = new JTextField();
+                bayarField.setBackground(Color.WHITE);bayarField.setForeground(Color.decode("#1F2937"));
 
-        pendapatanLabel =
-                new JLabel(
-                        "Pendapatan : Rp 0");
+                metodeCombo = new JComboBox<>();
+                metodeCombo.setBackground(Color.WHITE);
 
-        simpanButton =
-                new JButton(
-                        "Simpan Transaksi");
+                metodeCombo.addItem("Cash");
+                metodeCombo.addItem("QRIS");
+                metodeCombo.addItem("Transfer");
 
-        cetakButton =
-                new JButton(
-                        "Cetak Struk");
+                kembalianLabel = new JLabel("Rp 0");
+                kembalianLabel.setForeground(Color.decode("#1F2937"));
+                kembalianLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        bawah.add(totalLabel);
-        bawah.add(new JLabel(""));
+                jumlahTransaksiLabel = new JLabel("Jumlah Transaksi : 0");
+                jumlahTransaksiLabel.setForeground(Color.decode("#1F2937"));
+                jumlahTransaksiLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        bawah.add(new JLabel("Bayar"));
-        bawah.add(bayarField);
+                pendapatanLabel = new JLabel("Pendapatan : Rp 0");
+                pendapatanLabel.setForeground(Color.decode("#1F2937"));
+                pendapatanLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        bawah.add(new JLabel("Kembalian"));
-        bawah.add(kembalianLabel);
+                //simpanButton
+                simpanButton = new JButton("Simpan Transaksi");
+                simpanButton.setBackground(Color.decode("#22C55E"));
+                simpanButton.setForeground(Color.WHITE);
+                simpanButton.setFocusPainted(false);
 
-        bawah.add(jumlahTransaksiLabel);
-        bawah.add(pendapatanLabel);
+                //cetakButton
+                cetakButton = new JButton("Cetak Struk");
+                cetakButton.setBackground(Color.decode("#E5395A"));
+                cetakButton.setForeground(Color.WHITE);           
+                cetakButton.setFocusPainted(false);
 
-        bawah.add(cetakButton);
-        bawah.add(simpanButton);
+                bawah.add(totalLabel);
+                bawah.add(new JLabel(""));
 
-        add(bawah, BorderLayout.SOUTH);
+                bawah.add(new JLabel("Jumlah Bayar"));
+                bawah.add(bayarField);
 
-        bayarField.addKeyListener(
-                new java.awt.event.KeyAdapter() {
+                bawah.add(new JLabel("Metode Pembayaran"));
+                bawah.add(metodeCombo);
 
-                    @Override
-                    public void keyReleased(
-                            java.awt.event.KeyEvent evt) {
+                bawah.add(new JLabel("Kembalian"));
+                bawah.add(kembalianLabel);
 
-                        hitungKembalian();
-                    }
+                bawah.add(jumlahTransaksiLabel);
+                bawah.add(pendapatanLabel);
+
+                bawah.add(cetakButton);
+                bawah.add(simpanButton);
+
+                add(bawah,BorderLayout.SOUTH);
+
+                tambahButton.addActionListener(e -> tambahItem());
+                editButton.addActionListener(e -> editItem());
+                hapusButton.addActionListener(e -> hapusItem());
+                simpanButton.addActionListener(e -> simpanTransaksi());
+                cetakButton.addActionListener(e -> cetakStruk());
+                bayarField.addKeyListener(new java.awt.event.KeyAdapter() {
+                        @Override
+                        public void keyReleased(
+                                        java.awt.event.KeyEvent evt) {
+                                hitungKembalian();
+                        }
                 });
 
-        simpanButton.addActionListener(
-                e -> simpanTransaksi());
+                cariField.addKeyListener(new java.awt.event.KeyAdapter() {
+                        @Override
+                        public void keyReleased(
+                                        java.awt.event.KeyEvent evt) {
+                                filterProduk();
+                        }
+                });
+                refreshInfo();
 
-        cetakButton.addActionListener(
-                e -> cetakStruk());
-    }
-
-    private void tambahItem() {
-
-        try {
-
-            int index =
-                    produkCombo.getSelectedIndex();
-
-            Barang barang =
-                    barangService
-                            .getDaftarBarang()
-                            .get(index);
-
-            int jumlah =
-                    Integer.parseInt(
-                            jumlahField.getText());
-
-            DetailTransaksi detail =
-                    new DetailTransaksi(
-                            barang,
-                            jumlah);
-
-            transaksiAktif
-                    .tambahDetail(detail);
-
-            model.addRow(new Object[]{
-                    barang.getKodeBarang(),
-                    barang.getNamaBarang(),
-                    jumlah,
-                    barang.getHarga(),
-                    detail.hitungSubtotal()
-            });
-
-            updateTotal();
-
-            jumlahField.setText("");
-
-        } catch (Exception e) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Input tidak valid");
         }
-    }
-
-    private void editItem() {
-
-        int row =
-                tabel.getSelectedRow();
-
-        if (row == -1) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Pilih item terlebih dahulu");
-
-            return;
+        //FilterProduk
+        private void filterProduk() {
+                String keyword = cariField.getText().toLowerCase();
+                produkCombo.removeAllItems();
+                for (Barang barang : barangService.getDaftarBarang()) {
+                        if (barang.getKodeBarang().toLowerCase().contains(keyword) || barang.getNamaBarang().toLowerCase().contains(keyword)) {
+                                produkCombo.addItem(barang.getKodeBarang()+ " - "+ barang.getNamaBarang());
+                        }
+                }
         }
+        //RefreshInfo
+        private void refreshInfo() {
+                jumlahTransaksiLabel.setText("Jumlah Transaksi : "+ transaksiService.jumlahTransaksi());
+                pendapatanLabel.setText("Pendapatan : Rp "+ transaksiService.hitungPendapatan());
+                riwayatArea.setText("");
 
-        String input =
-                JOptionPane.showInputDialog(
-                        this,
-                        "Jumlah baru");
-
-        if (input == null) {
-            return;
+                for (String data : transaksiService.getRiwayatTransaksi()) {
+                        riwayatArea.append(data+ "\n");
+                }
         }
+        //TambahItemTransaksi
+        private void tambahItem() {
+                try {
+                        if (produkCombo.getSelectedIndex() == -1) {
+                                JOptionPane.showMessageDialog(this,"Pilih produk terlebih dahulu");
+                                return;
+                        }
 
-        try {
+                        int index = produkCombo.getSelectedIndex();
+                        Barang barang = barangService.getDaftarBarang().get(index);
+                        int jumlah = Integer.parseInt(jumlahField.getText());
 
-            int jumlahBaru =
-                    Integer.parseInt(input);
+                        if (jumlah <= 0) {
+                                JOptionPane.showMessageDialog(this,"Jumlah harus lebih dari 0");
+                                return;
+                        }
 
-            DetailTransaksi detail =
-                    transaksiAktif
-                            .getDaftarDetail()
-                            .get(row);
+                        if (jumlah > barang.getStok()) {
 
-            detail.setJumlah(jumlahBaru);
+                                JOptionPane.showMessageDialog(this,"Stok tidak mencukupi");
+                                return;
 
-            model.setValueAt(
-                    jumlahBaru,
-                    row,
-                    2);
+                        }
 
-            model.setValueAt(
-                    detail.hitungSubtotal(),
-                    row,
-                    4);
+                        DetailTransaksi detail = new DetailTransaksi(barang,jumlah);
 
-            updateTotal();
+                        transaksiAktif.tambahDetail(detail);
 
-        } catch (Exception e) {
+                        model.addRow(new Object[] {
+                                barang.getKodeBarang(),
+                                barang.getNamaBarang(),
+                                jumlah,
+                                barang.getHarga(),
+                                detail.hitungSubtotal()
+                        });
+                        updateTotal();
+                        jumlahField.setText("");
+                } catch (Exception e) {
+                        JOptionPane.showMessageDialog(this,"Input jumlah tidak valid");
+                }
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Input tidak valid");
         }
-    }
+        //EditItemTransaksi
+        private void editItem() {
+                int row = tabel.getSelectedRow();
+                if (row == -1) {
+                        JOptionPane.showMessageDialog(this,"Pilih item terlebih dahulu");
+                        return;
+                }
 
-    private void hapusItem() {
+                String input = JOptionPane.showInputDialog(this,"Jumlah baru");
 
-        int row =
-                tabel.getSelectedRow();
+                if (input == null) {
+                        return;
+                }
 
-        if (row == -1) {
+                try {
+                        int jumlahBaru = Integer.parseInt(input);
+                        DetailTransaksi detail = transaksiAktif.getDaftarDetail().get(row);
+                        if (jumlahBaru <= 0) {
+                                JOptionPane.showMessageDialog(this,"Jumlah tidak boleh 0");
+                                return;
+                        }
+                        detail.setJumlah(jumlahBaru);
+                        model.setValueAt(jumlahBaru,row,2);
+                        model.setValueAt(detail.hitungSubtotal(),row,4);
+                        updateTotal();
+                } catch (Exception e) {
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Pilih item dahulu");
+                        JOptionPane.showMessageDialog(this,"Input tidak valid");
 
-            return;
+                }
+
         }
 
-        transaksiAktif.hapusDetail(row);
+        //HapusItemTransaksi
+        private void hapusItem() {
+                int row = tabel.getSelectedRow();
+                if (row == -1) {
+                        JOptionPane.showMessageDialog(this,"Pilih item terlebih dahulu");
+                        return;
 
-        model.removeRow(row);
+                }
 
-        updateTotal();
-    }
-
-    private void updateTotal() {
-
-        totalLabel.setText(
-                "Total : Rp "
-                + transaksiAktif.hitungTotal());
-
-        hitungKembalian();
-    }
-
-    private void hitungKembalian() {
-
-        try {
-
-            double bayar =
-                    Double.parseDouble(
-                            bayarField.getText());
-
-            double total =
-                    transaksiAktif.hitungTotal();
-
-            kembalianLabel.setText(
-                    "Rp "
-                    + (bayar - total));
-
-        } catch (Exception e) {
-
-            kembalianLabel.setText(
-                    "Rp 0");
+                transaksiAktif.hapusDetail(row);
+                model.removeRow(row);
+                updateTotal();
         }
-    }
-
-    private void simpanTransaksi() {
-
-        try {
-
-            double bayar =
-                    Double.parseDouble(
-                            bayarField.getText());
-
-            if (!transaksiAktif
-                    .verifikasiBayar(bayar)) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Uang kurang");
-
-                return;
-            }
-
-            transaksiAktif
-                    .setTotalBayar(bayar);
-
-            transaksiAktif
-                    .konfirmasiTransaksi();
-
-            transaksiService
-                    .simpanTransaksi(
-                            transaksiAktif);
-
-            transaksiTerakhir =
-                    transaksiAktif;
-
-            riwayatArea.setText(
-                    transaksiService
-                            .tampilkanRiwayat());
-
-            jumlahTransaksiLabel.setText(
-                    "Jumlah Transaksi : "
-                    + transaksiService
-                    .jumlahTransaksi());
-
-            pendapatanLabel.setText(
-                    "Pendapatan : Rp "
-                    + transaksiService
-                    .hitungPendapatan());
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Transaksi berhasil disimpan");
-
-            resetForm();
-
-        } catch (Exception e) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Input pembayaran tidak valid");
+        //UpdateTotalTransaksi
+        private void updateTotal() {
+                totalLabel.setText("Total : Rp " + transaksiAktif.hitungTotal());
+                hitungKembalian();
         }
-    }
+        //HitungKembalianTransaksi
+        private void hitungKembalian() {
+                try {
+                        if (bayarField.getText().isEmpty()) {
+                                kembalianLabel.setText("Rp 0");
+                                return;
+                        }
 
-    private void cetakStruk() {
+                        double bayar = Double.parseDouble(bayarField.getText());
+                        double total = transaksiAktif.hitungTotal();
+                        double kembali = bayar - total;
 
-        if (transaksiTerakhir == null) {
+                        if (kembali < 0) {
+                                kembali = 0;
+                        }
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Belum ada transaksi");
+                        kembalianLabel.setText("Rp "+ kembali);
+                } catch (Exception e) {
+                        kembalianLabel.setText("Rp 0");
+                }
 
-            return;
         }
+        //SimpanTransaksi
+        private void simpanTransaksi() {
+                try {
+                        if (transaksiAktif.getDaftarDetail().isEmpty()) {
+                                JOptionPane.showMessageDialog(this,"Belum ada item transaksi");
+                                return;
 
-        JTextArea area =
-                new JTextArea(
-                        transaksiService
-                                .generateStruk(
-                                        transaksiTerakhir));
+                        }
 
-        area.setEditable(false);
+                        double bayar = Double.parseDouble(bayarField.getText());
 
-        JOptionPane.showMessageDialog(
-                this,
-                new JScrollPane(area),
-                "Struk",
-                JOptionPane.INFORMATION_MESSAGE);
-    }
+                        if (!transaksiAktif.verifikasiBayar(bayar)) {
+                                JOptionPane.showMessageDialog(this,"Jumlah pembayaran kurang");
+                                return;
+                        }
 
-    private void resetForm() {
+                        transaksiAktif.setTotalBayar(bayar);
+                        transaksiAktif.konfirmasiTransaksi();
+                        boolean berhasil = transaksiService.simpanTransaksi(transaksiAktif,bayar);
 
-        model.setRowCount(0);
+                        if (berhasil) {
+                                transaksiTerakhir = transaksiAktif;
+                                JOptionPane.showMessageDialog(this,"Transaksi berhasil disimpan");
+                                refreshInfo();
+                                resetForm();
 
-        jumlahField.setText("");
+                        } else {
 
-        bayarField.setText("");
+                                JOptionPane.showMessageDialog(this,"Transaksi gagal disimpan");
 
-        totalLabel.setText(
-                "Total : Rp 0");
+                        }
 
-        kembalianLabel.setText(
-                "Rp 0");
+                } catch (Exception e) {
 
-        transaksiAktif =
-                new Transaksi(
-                        generateId());
-    }
+                        JOptionPane.showMessageDialog(this,"Input pembayaran tidak valid");
+
+                }
+
+        }
+        //CetakStrukTransaksi
+        private void cetakStruk() {
+                if (transaksiTerakhir == null) {
+                        JOptionPane.showMessageDialog(this,"Belum ada transaksi");
+                        return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("========================\n");
+                sb.append("       MIKIMUP\n");
+                sb.append("========================\n\n");
+                sb.append("ID : ").append(transaksiTerakhir.getIdTransaksi()).append("\n");
+                sb.append("Tanggal : ").append(transaksiTerakhir.getTanggal()).append("\n\n");
+
+                for (DetailTransaksi detail : transaksiTerakhir.getDaftarDetail()) {
+                        sb.append(detail.getBarang().getNamaBarang()).append("\n");
+                        sb.append(detail.getJumlah()).append(" x Rp ").append(detail.getBarang().getHarga())
+                        .append(" = Rp ").append(detail.hitungSubtotal()).append("\n\n");
+                }
+
+                sb.append("------------------------\n");
+                sb.append("TOTAL : Rp ").append(transaksiTerakhir.hitungTotal()).append("\n");
+                sb.append("BAYAR : Rp ").append(transaksiTerakhir.getTotalBayar()).append("\n");
+                sb.append("KEMBALIAN : Rp ").append(transaksiTerakhir.hitungKembalian()).append("\n");
+                sb.append("========================\n");
+                sb.append("Terima Kasih Sudah Membeli Kimbab kami\n");
+
+                JTextArea area = new JTextArea(sb.toString());
+
+                area.setEditable(false);
+
+                JOptionPane.showMessageDialog(this,new JScrollPane(area),"Struk",JOptionPane.INFORMATION_MESSAGE);
+
+        }
+        //ResetFormTransaksi
+        private void resetForm() {
+                model.setRowCount(0);
+                jumlahField.setText("");
+                bayarField.setText("");
+                cariField.setText("");
+                totalLabel.setText("Total : Rp 0");
+                kembalianLabel.setText("Rp 0");
+                produkCombo.removeAllItems();
+
+                loadDataBarang();
+
+                for (Barang barang : barangService.getDaftarBarang()) {
+                        produkCombo.addItem(barang.getKodeBarang()+ " - "+ barang.getNamaBarang());
+                }
+
+                transaksiAktif = new Transaksi(
+                                generateId());
+
+        }
 }
