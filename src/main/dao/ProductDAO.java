@@ -1,5 +1,384 @@
 package main.dao;
 
+import database.DatabaseConnection;
+import main.model.Barang;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProductDAO {
-    // TODO: Query database untuk tabel products
+
+    /*
+     * ===========================
+     * AMBIL SEMUA PRODUK
+     * ===========================
+     */
+
+    public List<Barang> getAllProducts() {
+        List<Barang> list = new ArrayList<>();
+
+        String sql =
+                "SELECT * FROM products "
+                + "ORDER BY nama_product ASC";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                Barang barang = mapResultSetToBarang(rs);
+                list.add(barang);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil data produk.");
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    /*
+     * ===========================
+     * AMBIL PRODUK BERDASARKAN ID
+     * ===========================
+     */
+
+    public Barang getProductById(int idProduct) {
+        String sql =
+                "SELECT * FROM products "
+                + "WHERE id_product = ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, idProduct);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToBarang(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil produk berdasarkan ID.");
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /*
+     * ===========================
+     * AMBIL PRODUK BERDASARKAN KODE
+     * ===========================
+     */
+
+    public Barang getProductByKode(String kodeProduct) {
+        String sql =
+                "SELECT * FROM products "
+                + "WHERE kode_product = ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, kodeProduct);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToBarang(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil produk berdasarkan kode.");
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /*
+     * ===========================
+     * CARI PRODUK
+     * ===========================
+     */
+
+    public List<Barang> searchProduct(String keyword) {
+        List<Barang> list = new ArrayList<>();
+
+        String sql =
+                "SELECT * FROM products "
+                + "WHERE kode_product LIKE ? "
+                + "OR nama_product LIKE ? "
+                + "OR kategori LIKE ? "
+                + "ORDER BY nama_product ASC";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            String key = "%" + keyword + "%";
+
+            ps.setString(1, key);
+            ps.setString(2, key);
+            ps.setString(3, key);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Barang barang = mapResultSetToBarang(rs);
+                    list.add(barang);
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Gagal mencari produk.");
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    /*
+     * ===========================
+     * TAMBAH PRODUK
+     * ===========================
+     */
+
+    public boolean insertProduct(Barang barang) {
+        String sql =
+                "INSERT INTO products "
+                + "(kode_product, nama_product, kategori, harga_beli, harga_jual, stok, stok_minimum) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, barang.getKodeProduct());
+            ps.setString(2, barang.getNamaProduct());
+            ps.setString(3, barang.getKategori());
+            ps.setDouble(4, barang.getHargaBeli());
+            ps.setDouble(5, barang.getHargaJual());
+            ps.setInt(6, barang.getStok());
+            ps.setInt(7, barang.getStokMinimum());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Gagal menambahkan produk.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /*
+     * ===========================
+     * UPDATE PRODUK
+     * ===========================
+     */
+
+    public boolean updateProduct(Barang barang) {
+        String sql =
+                "UPDATE products SET "
+                + "kode_product = ?, "
+                + "nama_product = ?, "
+                + "kategori = ?, "
+                + "harga_beli = ?, "
+                + "harga_jual = ?, "
+                + "stok = ?, "
+                + "stok_minimum = ? "
+                + "WHERE id_product = ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, barang.getKodeProduct());
+            ps.setString(2, barang.getNamaProduct());
+            ps.setString(3, barang.getKategori());
+            ps.setDouble(4, barang.getHargaBeli());
+            ps.setDouble(5, barang.getHargaJual());
+            ps.setInt(6, barang.getStok());
+            ps.setInt(7, barang.getStokMinimum());
+            ps.setInt(8, barang.getIdProduct());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Gagal mengubah produk.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /*
+     * ===========================
+     * HAPUS PRODUK
+     * ===========================
+     */
+
+    public boolean deleteProduct(int idProduct) {
+        String sql =
+                "DELETE FROM products "
+                + "WHERE id_product = ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, idProduct);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Gagal menghapus produk.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /*
+     * ===========================
+     * UPDATE STOK
+     * ===========================
+     */
+
+    public boolean updateStock(int idProduct, int stokBaru) {
+        String sql =
+                "UPDATE products "
+                + "SET stok = ? "
+                + "WHERE id_product = ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, stokBaru);
+            ps.setInt(2, idProduct);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Gagal update stok produk.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /*
+     * ===========================
+     * KURANGI STOK
+     * ===========================
+     */
+
+    public boolean reduceStock(int idProduct, int jumlah) {
+        String sql =
+                "UPDATE products "
+                + "SET stok = stok - ? "
+                + "WHERE id_product = ? AND stok >= ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, jumlah);
+            ps.setInt(2, idProduct);
+            ps.setInt(3, jumlah);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Gagal mengurangi stok produk.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /*
+     * ===========================
+     * TAMBAH STOK
+     * ===========================
+     */
+
+    public boolean addStock(int idProduct, int jumlah) {
+        String sql =
+                "UPDATE products "
+                + "SET stok = stok + ? "
+                + "WHERE id_product = ?";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, jumlah);
+            ps.setInt(2, idProduct);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Gagal menambahkan stok produk.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /*
+     * ===========================
+     * PRODUK STOK MINIMUM
+     * ===========================
+     */
+
+    public List<Barang> getLowStockProducts() {
+        List<Barang> list = new ArrayList<>();
+
+        String sql =
+                "SELECT * FROM products "
+                + "WHERE stok <= stok_minimum "
+                + "ORDER BY stok ASC";
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                Barang barang = mapResultSetToBarang(rs);
+                list.add(barang);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil produk stok minimum.");
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    /*
+     * ===========================
+     * MAPPING RESULTSET KE BARANG
+     * ===========================
+     */
+
+    private Barang mapResultSetToBarang(ResultSet rs) throws Exception {
+        Barang barang = new Barang();
+
+        barang.setIdProduct(rs.getInt("id_product"));
+        barang.setKodeProduct(rs.getString("kode_product"));
+        barang.setNamaProduct(rs.getString("nama_product"));
+        barang.setKategori(rs.getString("kategori"));
+        barang.setHargaBeli(rs.getDouble("harga_beli"));
+        barang.setHargaJual(rs.getDouble("harga_jual"));
+        barang.setStok(rs.getInt("stok"));
+        barang.setStokMinimum(rs.getInt("stok_minimum"));
+
+        return barang;
+    }
 }
