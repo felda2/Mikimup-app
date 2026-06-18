@@ -53,6 +53,7 @@ public class TransaksiFrame extends JFrame {
 
     private JButton simpanButton;
     private JButton cetakButton;
+    private JButton kembaliButton;
 
     private JTextArea riwayatArea;
     private JLabel jumlahTransaksiLabel;
@@ -71,7 +72,6 @@ public class TransaksiFrame extends JFrame {
         daftarBarangTampil = new ArrayList<>();
 
         loadDataBarang();
-
         transaksiAktif = buatTransaksiBaru();
 
         setTitle("Transaksi Mikimup");
@@ -94,12 +94,9 @@ public class TransaksiFrame extends JFrame {
 
     private Transaksi buatTransaksiBaru() {
         Transaksi transaksi = new Transaksi();
+
         transaksi.setKodeTransaction(generateKodeTransaction());
-
-        // Untuk sementara id_user dibuat 1.
-        // Nanti kalau login sudah selesai, id_user bisa diambil dari user yang login.
         transaksi.setIdUser(1);
-
         transaksi.setTotalHarga(0);
         transaksi.setBayar(0);
         transaksi.setKembalian(0);
@@ -115,10 +112,10 @@ public class TransaksiFrame extends JFrame {
                 + "ORDER BY id_transaction DESC LIMIT 1";
 
         try (
-            Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
-        ) {
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
             if (rs.next()) {
                 String lastKode = rs.getString("kode_transaction");
 
@@ -141,10 +138,10 @@ public class TransaksiFrame extends JFrame {
         String sql = "SELECT * FROM products ORDER BY nama_product ASC";
 
         try (
-            Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
-        ) {
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 Barang barang = new Barang();
 
@@ -205,7 +202,7 @@ public class TransaksiFrame extends JFrame {
     }
 
     private void initTable() {
-        model = new DefaultTableModel(new String[] {
+        model = new DefaultTableModel(new String[]{
             "Kode", "Nama", "Jumlah", "Harga", "Subtotal"
         }, 0);
 
@@ -254,7 +251,7 @@ public class TransaksiFrame extends JFrame {
     }
 
     private void initPanelBawah() {
-        JPanel bawah = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel bawah = new JPanel(new GridLayout(7, 2, 10, 10));
         bawah.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
         bawah.setBackground(Color.decode("#FCE4E8"));
 
@@ -294,6 +291,11 @@ public class TransaksiFrame extends JFrame {
         cetakButton.setForeground(Color.WHITE);
         cetakButton.setFocusPainted(false);
 
+        kembaliButton = new JButton("Kembali ke Dashboard");
+        kembaliButton.setBackground(Color.decode("#E5395A"));
+        kembaliButton.setForeground(Color.WHITE);
+        kembaliButton.setFocusPainted(false);
+
         bawah.add(totalLabel);
         bawah.add(new JLabel(""));
 
@@ -312,6 +314,9 @@ public class TransaksiFrame extends JFrame {
         bawah.add(cetakButton);
         bawah.add(simpanButton);
 
+        bawah.add(new JLabel(""));
+        bawah.add(kembaliButton);
+
         add(bawah, BorderLayout.SOUTH);
 
         tambahButton.addActionListener(e -> tambahItem());
@@ -319,6 +324,11 @@ public class TransaksiFrame extends JFrame {
         hapusButton.addActionListener(e -> hapusItem());
         simpanButton.addActionListener(e -> simpanTransaksi());
         cetakButton.addActionListener(e -> cetakStruk());
+
+        kembaliButton.addActionListener(e -> {
+            new DashboardFrame().setVisible(true);
+            dispose();
+        });
 
         bayarField.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
@@ -397,7 +407,7 @@ public class TransaksiFrame extends JFrame {
 
             transaksiAktif.tambahDetail(detail);
 
-            model.addRow(new Object[] {
+            model.addRow(new Object[]{
                 barang.getKodeProduct(),
                 barang.getNamaProduct(),
                 jumlah,
@@ -615,18 +625,18 @@ public class TransaksiFrame extends JFrame {
                 + "FROM transactions ORDER BY id_transaction DESC LIMIT 10";
 
         try (
-            Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
-        ) {
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 riwayatArea.append(
                         rs.getString("kode_transaction")
-                                + " | Rp "
-                                + rs.getDouble("total_harga")
-                                + " | "
-                                + rs.getString("metode_pembayaran")
-                                + "\n"
+                        + " | Rp "
+                        + rs.getDouble("total_harga")
+                        + " | "
+                        + rs.getString("metode_pembayaran")
+                        + "\n"
                 );
             }
 
@@ -639,10 +649,10 @@ public class TransaksiFrame extends JFrame {
         String sql = "SELECT COUNT(*) AS jumlah FROM transactions";
 
         try (
-            Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
-        ) {
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
             if (rs.next()) {
                 return rs.getInt("jumlah");
             }
@@ -658,10 +668,10 @@ public class TransaksiFrame extends JFrame {
         String sql = "SELECT COALESCE(SUM(total_harga), 0) AS pendapatan FROM transactions";
 
         try (
-            Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
-        ) {
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
             if (rs.next()) {
                 return rs.getDouble("pendapatan");
             }

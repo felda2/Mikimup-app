@@ -7,7 +7,14 @@ import main.model.User;
 
 public class DashboardFrame extends JFrame {
 
+    private User user;
+
+    public DashboardFrame() {
+        this(null);
+    }
+
     public DashboardFrame(User user) {
+        this.user = user;
 
         setTitle("Mikimup - Dashboard");
         setSize(950, 600);
@@ -26,14 +33,19 @@ public class DashboardFrame extends JFrame {
         centerCard.setBackground(Color.WHITE);
         centerCard.setLayout(new BoxLayout(centerCard, BoxLayout.Y_AXIS));
         centerCard.setBorder(new EmptyBorder(40, 50, 40, 50));
-        centerCard.setMaximumSize(new Dimension(720, 420));
+        centerCard.setMaximumSize(new Dimension(780, 440));
 
-        JLabel titleLabel = new JLabel(" MIKIMUP");
+        JLabel titleLabel = new JLabel("MIKIMUP");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 34));
         titleLabel.setForeground(new Color(0xE5395A));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel welcomeLabel = new JLabel("Welcome back, " + user.getUsername());
+        String username = "User";
+        if (user != null && user.getUsername() != null) {
+            username = user.getUsername();
+        }
+
+        JLabel welcomeLabel = new JLabel("Welcome back, " + username);
         welcomeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         welcomeLabel.setForeground(new Color(0x4B5563));
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -43,17 +55,19 @@ public class DashboardFrame extends JFrame {
         subtitleLabel.setForeground(new Color(0x9CA3AF));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel menuPanel = new JPanel(new GridLayout(1, 3, 15, 0));
+        JPanel menuPanel = new JPanel(new GridLayout(2, 2, 15, 15));
         menuPanel.setBackground(Color.WHITE);
-        menuPanel.setMaximumSize(new Dimension(600, 100));
+        menuPanel.setMaximumSize(new Dimension(620, 210));
 
-        JButton barangButton = buatTombolMenu(" Produk");
-        JButton transaksiButton = buatTombolMenu(" Transaksi");
-        JButton laporanButton = buatTombolMenu(" Laporan");
+        JButton barangButton = buatTombolMenu("Produk");
+        JButton transaksiButton = buatTombolMenu("Transaksi");
+        JButton laporanButton = buatTombolMenu("Laporan");
+        JButton userButton = buatTombolMenu("User");
 
         menuPanel.add(barangButton);
         menuPanel.add(transaksiButton);
         menuPanel.add(laporanButton);
+        menuPanel.add(userButton);
 
         JButton logoutButton = buatLogoutButton();
 
@@ -62,9 +76,9 @@ public class DashboardFrame extends JFrame {
         centerCard.add(welcomeLabel);
         centerCard.add(Box.createVerticalStrut(5));
         centerCard.add(subtitleLabel);
-        centerCard.add(Box.createVerticalStrut(40));
+        centerCard.add(Box.createVerticalStrut(35));
         centerCard.add(menuPanel);
-        centerCard.add(Box.createVerticalStrut(30));
+        centerCard.add(Box.createVerticalStrut(25));
         centerCard.add(logoutButton);
 
         contentArea.add(Box.createVerticalGlue());
@@ -72,19 +86,26 @@ public class DashboardFrame extends JFrame {
         contentArea.add(Box.createVerticalGlue());
 
         mainPanel.add(contentArea, BorderLayout.CENTER);
-
         setContentPane(mainPanel);
 
         barangButton.addActionListener(e -> {
             new BarangFrame().setVisible(true);
+            dispose();
         });
 
         transaksiButton.addActionListener(e -> {
             new TransaksiFrame().setVisible(true);
+            dispose();
         });
 
         laporanButton.addActionListener(e -> {
             new LaporanFrame().setVisible(true);
+            dispose();
+        });
+
+        userButton.addActionListener(e -> {
+            new UserFrame().setVisible(true);
+            dispose();
         });
 
         logoutButton.addActionListener(e -> {
@@ -103,7 +124,6 @@ public class DashboardFrame extends JFrame {
     }
 
     private JButton buatTombolMenu(String teks) {
-
         JButton button = new JButton(teks) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -137,7 +157,7 @@ public class DashboardFrame extends JFrame {
         button.setFocusPainted(false);
         button.setOpaque(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(180, 90));
+        button.setPreferredSize(new Dimension(200, 90));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -155,7 +175,6 @@ public class DashboardFrame extends JFrame {
     }
 
     private JButton buatLogoutButton() {
-
         JButton button = new JButton("Logout");
 
         button.setFont(new Font("Segoe UI", Font.BOLD, 13));
