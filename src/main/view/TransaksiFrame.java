@@ -64,7 +64,7 @@ public class TransaksiFrame extends JFrame {
         private Transaksi transaksiAktif;
         private Transaksi transaksiTerakhir;
 
-        private int nomorTransaksi = 1;
+        private int nomorTransaksi;
 
         public TransaksiFrame() {
 
@@ -101,7 +101,34 @@ public class TransaksiFrame extends JFrame {
 
         private String generateId() {
 
-                return String.format("TRX%03d", nomorTransaksi++);
+                try {
+                        Connection conn = DatabaseConnection.getConnection();
+                        String sql = "SELECT id_transaksi "
+                                        + "FROM transactions "
+                                        + "ORDER BY id_transaksi DESC "
+                                        + "LIMIT 1";
+                        PreparedStatement ps = conn.prepareStatement(sql);
+                        ResultSet rs = ps.executeQuery();
+                        if (rs.next()) {
+                                String lastId = rs.getString("id_transaksi");
+                                int nomor = Integer.parseInt(lastId.substring(3));
+                                rs.close();
+                                ps.close();
+                                conn.close();
+                                return String.format("TRX%03d", nomor + 1);
+                        }
+
+                        rs.close();
+                        ps.close();
+                        conn.close();
+
+                } catch (Exception e) {
+
+                        e.printStackTrace();
+
+                }
+
+                return "TRX001";
 
         }
 
@@ -150,12 +177,12 @@ public class TransaksiFrame extends JFrame {
                 produkCombo.setBackground(Color.WHITE);
 
                 for (Barang barang : barangService.getDaftarBarang()) {
-                        produkCombo.addItem(barang.getKodeBarang()+ " - "+ barang.getNamaBarang());
+                        produkCombo.addItem(barang.getKodeBarang() + " - " + barang.getNamaBarang());
                 }
 
                 jumlahField = new JTextField();
                 jumlahField.setBackground(Color.WHITE);
-                jumlahField.setForeground(Color.decode("#1F2937"));     
+                jumlahField.setForeground(Color.decode("#1F2937"));
 
                 tambahButton = new JButton("Tambah Item");
                 tambahButton.setBackground(Color.decode("#E5395A"));
@@ -170,16 +197,17 @@ public class TransaksiFrame extends JFrame {
                 panel.add(jumlahField);
                 panel.add(new JLabel(""));
                 panel.add(tambahButton);
-                add(panel,BorderLayout.NORTH);
+                add(panel, BorderLayout.NORTH);
 
         }
-        //TabelTransaksi
+
+        // TabelTransaksi
         private void initTable() {
                 model = new DefaultTableModel(new String[] {
-                        "Kode","Nama","Jumlah","Harga","Subtotal"
-                },0);
+                                "Kode", "Nama", "Jumlah", "Harga", "Subtotal"
+                }, 0);
 
-                //tabelTransaksi
+                // tabelTransaksi
                 tabel = new JTable(model);
                 tabel.getTableHeader().setBackground(Color.decode("#E5395A"));
                 tabel.getTableHeader().setForeground(Color.WHITE);
@@ -187,19 +215,19 @@ public class TransaksiFrame extends JFrame {
 
                 tabel.setRowHeight(25);
 
-                JPanel panel = new JPanel(new BorderLayout(10,10));
+                JPanel panel = new JPanel(new BorderLayout(10, 10));
                 panel.setBorder(BorderFactory.createTitledBorder("Keranjang Transaksi"));
                 panel.setBackground(Color.WHITE);
-                panel.add(new JScrollPane(tabel),BorderLayout.CENTER);
+                panel.add(new JScrollPane(tabel), BorderLayout.CENTER);
                 JPanel tombolPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-                //EditButton
+                // EditButton
                 editButton = new JButton("Edit Item");
                 editButton.setBackground(Color.decode("#3B82F6"));
                 editButton.setForeground(Color.WHITE);
                 editButton.setFocusPainted(false);
 
-                //HapusButton
+                // HapusButton
                 hapusButton = new JButton("Hapus Item");
                 tombolPanel.add(editButton);
                 tombolPanel.add(hapusButton);
@@ -207,11 +235,12 @@ public class TransaksiFrame extends JFrame {
                 hapusButton.setForeground(Color.WHITE);
                 hapusButton.setFocusPainted(false);
 
-                panel.add(tombolPanel,BorderLayout.SOUTH);
-                add(panel,BorderLayout.CENTER);
+                panel.add(tombolPanel, BorderLayout.SOUTH);
+                add(panel, BorderLayout.CENTER);
 
         }
-        //PanelRiwayatKu
+
+        // PanelRiwayatKu
         private void initPanelRiwayat() {
 
                 riwayatArea = new JTextArea();
@@ -220,24 +249,26 @@ public class TransaksiFrame extends JFrame {
                 riwayatArea.setWrapStyleWord(true);
                 JScrollPane scroll = new JScrollPane(riwayatArea);
 
-                scroll.setPreferredSize(new Dimension(260,0));
+                scroll.setPreferredSize(new Dimension(260, 0));
                 scroll.setBorder(BorderFactory.createTitledBorder("Riwayat Transaksi"));
 
-                add(scroll,BorderLayout.EAST);
+                add(scroll, BorderLayout.EAST);
 
         }
-        //PanelBawahTransaksi
-        private void initPanelBawah() {
-                JPanel bawah = new JPanel(new GridLayout(6,2,10,10));
 
-                bawah.setBorder(BorderFactory.createEmptyBorder(12,0,0,0));
+        // PanelBawahTransaksi
+        private void initPanelBawah() {
+                JPanel bawah = new JPanel(new GridLayout(6, 2, 10, 10));
+
+                bawah.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
 
                 totalLabel = new JLabel("Total : Rp 0");
                 totalLabel.setForeground(Color.decode("#1F2937"));
                 totalLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
                 bayarField = new JTextField();
-                bayarField.setBackground(Color.WHITE);bayarField.setForeground(Color.decode("#1F2937"));
+                bayarField.setBackground(Color.WHITE);
+                bayarField.setForeground(Color.decode("#1F2937"));
 
                 metodeCombo = new JComboBox<>();
                 metodeCombo.setBackground(Color.WHITE);
@@ -258,16 +289,16 @@ public class TransaksiFrame extends JFrame {
                 pendapatanLabel.setForeground(Color.decode("#1F2937"));
                 pendapatanLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-                //simpanButton
+                // simpanButton
                 simpanButton = new JButton("Simpan Transaksi");
                 simpanButton.setBackground(Color.decode("#22C55E"));
                 simpanButton.setForeground(Color.WHITE);
                 simpanButton.setFocusPainted(false);
 
-                //cetakButton
+                // cetakButton
                 cetakButton = new JButton("Cetak Struk");
                 cetakButton.setBackground(Color.decode("#E5395A"));
-                cetakButton.setForeground(Color.WHITE);           
+                cetakButton.setForeground(Color.WHITE);
                 cetakButton.setFocusPainted(false);
 
                 bawah.add(totalLabel);
@@ -288,7 +319,7 @@ public class TransaksiFrame extends JFrame {
                 bawah.add(cetakButton);
                 bawah.add(simpanButton);
 
-                add(bawah,BorderLayout.SOUTH);
+                add(bawah, BorderLayout.SOUTH);
 
                 tambahButton.addActionListener(e -> tambahItem());
                 editButton.addActionListener(e -> editItem());
@@ -313,31 +344,35 @@ public class TransaksiFrame extends JFrame {
                 refreshInfo();
 
         }
-        //FilterProduk
+
+        // FilterProduk
         private void filterProduk() {
                 String keyword = cariField.getText().toLowerCase();
                 produkCombo.removeAllItems();
                 for (Barang barang : barangService.getDaftarBarang()) {
-                        if (barang.getKodeBarang().toLowerCase().contains(keyword) || barang.getNamaBarang().toLowerCase().contains(keyword)) {
-                                produkCombo.addItem(barang.getKodeBarang()+ " - "+ barang.getNamaBarang());
+                        if (barang.getKodeBarang().toLowerCase().contains(keyword)
+                                        || barang.getNamaBarang().toLowerCase().contains(keyword)) {
+                                produkCombo.addItem(barang.getKodeBarang() + " - " + barang.getNamaBarang());
                         }
                 }
         }
-        //RefreshInfo
+
+        // RefreshInfo
         private void refreshInfo() {
-                jumlahTransaksiLabel.setText("Jumlah Transaksi : "+ transaksiService.jumlahTransaksi());
-                pendapatanLabel.setText("Pendapatan : Rp "+ transaksiService.hitungPendapatan());
+                jumlahTransaksiLabel.setText("Jumlah Transaksi : " + transaksiService.jumlahTransaksi());
+                pendapatanLabel.setText("Pendapatan : Rp " + transaksiService.hitungPendapatan());
                 riwayatArea.setText("");
 
                 for (String data : transaksiService.getRiwayatTransaksi()) {
-                        riwayatArea.append(data+ "\n");
+                        riwayatArea.append(data + "\n");
                 }
         }
-        //TambahItemTransaksi
+
+        // TambahItemTransaksi
         private void tambahItem() {
                 try {
                         if (produkCombo.getSelectedIndex() == -1) {
-                                JOptionPane.showMessageDialog(this,"Pilih produk terlebih dahulu");
+                                JOptionPane.showMessageDialog(this, "Pilih produk terlebih dahulu");
                                 return;
                         }
 
@@ -346,44 +381,45 @@ public class TransaksiFrame extends JFrame {
                         int jumlah = Integer.parseInt(jumlahField.getText());
 
                         if (jumlah <= 0) {
-                                JOptionPane.showMessageDialog(this,"Jumlah harus lebih dari 0");
+                                JOptionPane.showMessageDialog(this, "Jumlah harus lebih dari 0");
                                 return;
                         }
 
                         if (jumlah > barang.getStok()) {
 
-                                JOptionPane.showMessageDialog(this,"Stok tidak mencukupi");
+                                JOptionPane.showMessageDialog(this, "Stok tidak mencukupi");
                                 return;
 
                         }
 
-                        DetailTransaksi detail = new DetailTransaksi(barang,jumlah);
+                        DetailTransaksi detail = new DetailTransaksi(barang, jumlah);
 
                         transaksiAktif.tambahDetail(detail);
 
                         model.addRow(new Object[] {
-                                barang.getKodeBarang(),
-                                barang.getNamaBarang(),
-                                jumlah,
-                                barang.getHarga(),
-                                detail.hitungSubtotal()
+                                        barang.getKodeBarang(),
+                                        barang.getNamaBarang(),
+                                        jumlah,
+                                        barang.getHarga(),
+                                        detail.hitungSubtotal()
                         });
                         updateTotal();
                         jumlahField.setText("");
                 } catch (Exception e) {
-                        JOptionPane.showMessageDialog(this,"Input jumlah tidak valid");
+                        JOptionPane.showMessageDialog(this, "Input jumlah tidak valid");
                 }
 
         }
-        //EditItemTransaksi
+
+        // EditItemTransaksi
         private void editItem() {
                 int row = tabel.getSelectedRow();
                 if (row == -1) {
-                        JOptionPane.showMessageDialog(this,"Pilih item terlebih dahulu");
+                        JOptionPane.showMessageDialog(this, "Pilih item terlebih dahulu");
                         return;
                 }
 
-                String input = JOptionPane.showInputDialog(this,"Jumlah baru");
+                String input = JOptionPane.showInputDialog(this, "Jumlah baru");
 
                 if (input == null) {
                         return;
@@ -393,26 +429,26 @@ public class TransaksiFrame extends JFrame {
                         int jumlahBaru = Integer.parseInt(input);
                         DetailTransaksi detail = transaksiAktif.getDaftarDetail().get(row);
                         if (jumlahBaru <= 0) {
-                                JOptionPane.showMessageDialog(this,"Jumlah tidak boleh 0");
+                                JOptionPane.showMessageDialog(this, "Jumlah tidak boleh 0");
                                 return;
                         }
                         detail.setJumlah(jumlahBaru);
-                        model.setValueAt(jumlahBaru,row,2);
-                        model.setValueAt(detail.hitungSubtotal(),row,4);
+                        model.setValueAt(jumlahBaru, row, 2);
+                        model.setValueAt(detail.hitungSubtotal(), row, 4);
                         updateTotal();
                 } catch (Exception e) {
 
-                        JOptionPane.showMessageDialog(this,"Input tidak valid");
+                        JOptionPane.showMessageDialog(this, "Input tidak valid");
 
                 }
 
         }
 
-        //HapusItemTransaksi
+        // HapusItemTransaksi
         private void hapusItem() {
                 int row = tabel.getSelectedRow();
                 if (row == -1) {
-                        JOptionPane.showMessageDialog(this,"Pilih item terlebih dahulu");
+                        JOptionPane.showMessageDialog(this, "Pilih item terlebih dahulu");
                         return;
 
                 }
@@ -421,12 +457,14 @@ public class TransaksiFrame extends JFrame {
                 model.removeRow(row);
                 updateTotal();
         }
-        //UpdateTotalTransaksi
+
+        // UpdateTotalTransaksi
         private void updateTotal() {
                 totalLabel.setText("Total : Rp " + transaksiAktif.hitungTotal());
                 hitungKembalian();
         }
-        //HitungKembalianTransaksi
+
+        // HitungKembalianTransaksi
         private void hitungKembalian() {
                 try {
                         if (bayarField.getText().isEmpty()) {
@@ -442,17 +480,18 @@ public class TransaksiFrame extends JFrame {
                                 kembali = 0;
                         }
 
-                        kembalianLabel.setText("Rp "+ kembali);
+                        kembalianLabel.setText("Rp " + kembali);
                 } catch (Exception e) {
                         kembalianLabel.setText("Rp 0");
                 }
 
         }
-        //SimpanTransaksi
+
+        // SimpanTransaksi
         private void simpanTransaksi() {
                 try {
                         if (transaksiAktif.getDaftarDetail().isEmpty()) {
-                                JOptionPane.showMessageDialog(this,"Belum ada item transaksi");
+                                JOptionPane.showMessageDialog(this, "Belum ada item transaksi");
                                 return;
 
                         }
@@ -460,37 +499,38 @@ public class TransaksiFrame extends JFrame {
                         double bayar = Double.parseDouble(bayarField.getText());
 
                         if (!transaksiAktif.verifikasiBayar(bayar)) {
-                                JOptionPane.showMessageDialog(this,"Jumlah pembayaran kurang");
+                                JOptionPane.showMessageDialog(this, "Jumlah pembayaran kurang");
                                 return;
                         }
 
                         transaksiAktif.setTotalBayar(bayar);
                         transaksiAktif.konfirmasiTransaksi();
-                        boolean berhasil = transaksiService.simpanTransaksi(transaksiAktif,bayar);
+                        boolean berhasil = transaksiService.simpanTransaksi(transaksiAktif, bayar);
 
                         if (berhasil) {
                                 transaksiTerakhir = transaksiAktif;
-                                JOptionPane.showMessageDialog(this,"Transaksi berhasil disimpan");
+                                JOptionPane.showMessageDialog(this, "Transaksi berhasil disimpan");
                                 refreshInfo();
                                 resetForm();
 
                         } else {
 
-                                JOptionPane.showMessageDialog(this,"Transaksi gagal disimpan");
+                                JOptionPane.showMessageDialog(this, "Transaksi gagal disimpan");
 
                         }
 
                 } catch (Exception e) {
 
-                        JOptionPane.showMessageDialog(this,"Input pembayaran tidak valid");
+                        JOptionPane.showMessageDialog(this, "Input pembayaran tidak valid");
 
                 }
 
         }
-        //CetakStrukTransaksi
+
+        // CetakStrukTransaksi
         private void cetakStruk() {
                 if (transaksiTerakhir == null) {
-                        JOptionPane.showMessageDialog(this,"Belum ada transaksi");
+                        JOptionPane.showMessageDialog(this, "Belum ada transaksi");
                         return;
                 }
 
@@ -504,7 +544,7 @@ public class TransaksiFrame extends JFrame {
                 for (DetailTransaksi detail : transaksiTerakhir.getDaftarDetail()) {
                         sb.append(detail.getBarang().getNamaBarang()).append("\n");
                         sb.append(detail.getJumlah()).append(" x Rp ").append(detail.getBarang().getHarga())
-                        .append(" = Rp ").append(detail.hitungSubtotal()).append("\n\n");
+                                        .append(" = Rp ").append(detail.hitungSubtotal()).append("\n\n");
                 }
 
                 sb.append("------------------------\n");
@@ -518,10 +558,11 @@ public class TransaksiFrame extends JFrame {
 
                 area.setEditable(false);
 
-                JOptionPane.showMessageDialog(this,new JScrollPane(area),"Struk",JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, new JScrollPane(area), "Struk", JOptionPane.INFORMATION_MESSAGE);
 
         }
-        //ResetFormTransaksi
+
+        // ResetFormTransaksi
         private void resetForm() {
                 model.setRowCount(0);
                 jumlahField.setText("");
@@ -534,7 +575,7 @@ public class TransaksiFrame extends JFrame {
                 loadDataBarang();
 
                 for (Barang barang : barangService.getDaftarBarang()) {
-                        produkCombo.addItem(barang.getKodeBarang()+ " - "+ barang.getNamaBarang());
+                        produkCombo.addItem(barang.getKodeBarang() + " - " + barang.getNamaBarang());
                 }
 
                 transaksiAktif = new Transaksi(
