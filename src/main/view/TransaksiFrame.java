@@ -67,6 +67,7 @@ public class TransaksiFrame extends JFrame {
     private List<Barang> daftarBarang;
     private List<Barang> daftarBarangTampil;
 
+    //FullFrame
     public TransaksiFrame() {
         transaksiService = new TransaksiService();
 
