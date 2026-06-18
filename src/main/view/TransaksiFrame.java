@@ -1,3 +1,5 @@
+//Fitur transaksi frame
+
 package main.view;
 
 import java.awt.BorderLayout;
