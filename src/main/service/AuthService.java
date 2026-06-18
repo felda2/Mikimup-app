@@ -1,14 +1,13 @@
 package main.service;
 
+import main.dao.UserDAO;
 import main.model.User;
 
 public class AuthService {
 
-    public User login(String username, String password) {
-        if (username.equals("admin") && password.equals("123")) {
-            return new User("admin", "123", "admin");
-        }
+    private UserDAO userDAO = new UserDAO();
 
-        return null;
+    public User login(String username, String password) {
+        return userDAO.login(username, password);
     }
 }
