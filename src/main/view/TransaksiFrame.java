@@ -2,6 +2,7 @@
 
 package main.view;
 
+import database.DatabaseConnection;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,7 +14,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -26,8 +26,6 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-
-import database.DatabaseConnection;
 import main.model.Barang;
 import main.model.DetailTransaksi;
 import main.model.Transaksi;
@@ -168,6 +166,7 @@ public class TransaksiFrame extends JFrame {
         }
     }
 
+    //PanelInput
     private void initPanelInput() {
         JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.setBorder(BorderFactory.createTitledBorder("Input Transaksi"));
