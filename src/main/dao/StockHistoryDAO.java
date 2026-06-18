@@ -73,6 +73,14 @@ public class StockHistoryDAO {
     }
 
     /*
+     * Method tambahan untuk kompatibilitas dengan kode laporan Daffa.
+     */
+
+    public ArrayList<StockHistory> getAllHistory() {
+        return new ArrayList<>(getAllStockHistory());
+    }
+
+    /*
      * ===========================
      * AMBIL RIWAYAT STOK BERDASARKAN PRODUK
      * ===========================

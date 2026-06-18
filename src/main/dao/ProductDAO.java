@@ -17,8 +17,8 @@ public class ProductDAO {
      * ===========================
      */
 
-    public List<Barang> getAllProducts() {
-        List<Barang> list = new ArrayList<>();
+    public ArrayList<Barang> getAllProducts() {
+        ArrayList<Barang> list = new ArrayList<>();
 
         String sql =
                 "SELECT * FROM products "
@@ -40,6 +40,16 @@ public class ProductDAO {
         }
 
         return list;
+    }
+
+    /*
+     * ===========================
+     * METHOD CADANGAN UNTUK KODE LAMA
+     * ===========================
+     */
+
+    public ArrayList<Barang> getDaftarBarang() {
+        return getAllProducts();
     }
 
     /*
@@ -105,13 +115,21 @@ public class ProductDAO {
     }
 
     /*
+     * METHOD CADANGAN
+     */
+
+    public Barang getProductByKodeBarang(String kodeBarang) {
+        return getProductByKode(kodeBarang);
+    }
+
+    /*
      * ===========================
      * CARI PRODUK
      * ===========================
      */
 
-    public List<Barang> searchProduct(String keyword) {
-        List<Barang> list = new ArrayList<>();
+    public ArrayList<Barang> searchProduct(String keyword) {
+        ArrayList<Barang> list = new ArrayList<>();
 
         String sql =
                 "SELECT * FROM products "
@@ -146,6 +164,14 @@ public class ProductDAO {
     }
 
     /*
+     * METHOD CADANGAN
+     */
+
+    public ArrayList<Barang> cariProduk(String keyword) {
+        return searchProduct(keyword);
+    }
+
+    /*
      * ===========================
      * TAMBAH PRODUK
      * ===========================
@@ -176,6 +202,18 @@ public class ProductDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /*
+     * METHOD CADANGAN
+     */
+
+    public boolean tambahProduct(Barang barang) {
+        return insertProduct(barang);
+    }
+
+    public boolean tambahBarang(Barang barang) {
+        return insertProduct(barang);
     }
 
     /*
@@ -219,6 +257,14 @@ public class ProductDAO {
     }
 
     /*
+     * METHOD CADANGAN
+     */
+
+    public boolean updateBarang(Barang barang) {
+        return updateProduct(barang);
+    }
+
+    /*
      * ===========================
      * HAPUS PRODUK
      * ===========================
@@ -242,6 +288,14 @@ public class ProductDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /*
+     * METHOD CADANGAN
+     */
+
+    public boolean hapusBarang(int idProduct) {
+        return deleteProduct(idProduct);
     }
 
     /*
@@ -270,6 +324,14 @@ public class ProductDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /*
+     * METHOD CADANGAN
+     */
+
+    public boolean updateStok(int idProduct, int stokBaru) {
+        return updateStock(idProduct, stokBaru);
     }
 
     /*
@@ -302,6 +364,14 @@ public class ProductDAO {
     }
 
     /*
+     * METHOD CADANGAN
+     */
+
+    public boolean kurangiStok(int idProduct, int jumlah) {
+        return reduceStock(idProduct, jumlah);
+    }
+
+    /*
      * ===========================
      * TAMBAH STOK
      * ===========================
@@ -330,13 +400,21 @@ public class ProductDAO {
     }
 
     /*
+     * METHOD CADANGAN
+     */
+
+    public boolean tambahStok(int idProduct, int jumlah) {
+        return addStock(idProduct, jumlah);
+    }
+
+    /*
      * ===========================
      * PRODUK STOK MINIMUM
      * ===========================
      */
 
-    public List<Barang> getLowStockProducts() {
-        List<Barang> list = new ArrayList<>();
+    public ArrayList<Barang> getLowStockProducts() {
+        ArrayList<Barang> list = new ArrayList<>();
 
         String sql =
                 "SELECT * FROM products "
@@ -359,6 +437,14 @@ public class ProductDAO {
         }
 
         return list;
+    }
+
+    /*
+     * METHOD CADANGAN
+     */
+
+    public ArrayList<Barang> getStokMinimum() {
+        return getLowStockProducts();
     }
 
     /*

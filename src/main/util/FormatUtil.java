@@ -7,13 +7,15 @@ import java.util.Locale;
 
 public class FormatUtil {
 
-    public static String formatRupiah(double amount) {
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
-        return formatter.format(amount);
+    public static String formatRupiah(double nilai) {
+        Locale indonesia = Locale.forLanguageTag("id-ID");
+        NumberFormat rupiah = NumberFormat.getCurrencyInstance(indonesia);
+        return rupiah.format(nilai);
     }
 
-    public static String formatTanggal(LocalDateTime dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-        return dateTime.format(formatter);
+    public static String formatTanggal(LocalDateTime tanggal) {
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        return tanggal.format(formatter);
     }
 }
