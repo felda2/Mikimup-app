@@ -7,10 +7,7 @@ import main.model.User;
 
 public class DashboardFrame extends JFrame {
 
-    private User user;
-
     public DashboardFrame(User user) {
-        this.user = user;
 
         setTitle("Mikimup - Dashboard");
         setSize(950, 600);
@@ -143,10 +140,12 @@ public class DashboardFrame extends JFrame {
         button.setPreferredSize(new Dimension(180, 90));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setBackground(new Color(0xC92C4A));
             }
 
+            @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
                 button.setBackground(new Color(0xE5395A));
             }
@@ -170,10 +169,12 @@ public class DashboardFrame extends JFrame {
         button.setMaximumSize(new Dimension(140, 42));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setBackground(new Color(255, 220, 228));
             }
 
+            @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
                 button.setBackground(new Color(0xFCE4E8));
             }
